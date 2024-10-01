@@ -101,8 +101,16 @@ sub daemonize {
             close STDOUT;
             close STDERR;
             open(STDIN, "</dev/null");
-            open(STDOUT, "+>/dev/null");
-            open(STDERR, "+>/dev/null");
+            if (defined $ENV{CRONONCE_STDOUT}) {
+                open(STDOUT, "+>$ENV{CRONONCE_STDOUT}");
+            } else {
+                open(STDOUT, "+>/dev/null");
+            }
+            if (defined $ENV{CRONONCE_STDERR}) {
+                open(STDERR, "+>$ENV{CRONONCE_STDERR}");
+            } else {
+                open(STDERR, "+>/dev/null");
+            }
             if ($hc_fd) {
                 my @fh;
                 for (my $fd = 3; $fd <= $hc_fd; $fd += 1) {
@@ -116,6 +124,11 @@ sub daemonize {
     }
     waitpid($pid, 0);
 }
+
+# our $RX_RANGE           = qr{(?:(\*|\d+(-(\d+)?)?)(/\d+)?)}
+# our $RX_CRON_FIELD      = qr{(?:\Q${RX_RANGE}\E(,\Q${RX_RANGE}\E)+)};
+# our $RX_CRON_WDAY_FIELD = qr{(?:\Q$RX_CRON_FIELD\E|sun|mon|tue|wed|thu|fri|sat)};
+# our $RX_CRON_MON_FIELD  = qr{(?:\Q$RX_CRON_FIELD\E|jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)};
 
 sub cron_match {
     my ($num, $field) = @_;
@@ -147,7 +160,8 @@ sub cron_match_range_step {
 sub logg {
     my ($fmt, @args) = @_;
     $fmt =~ s{\R\z}{};
-    printf("%s: %s:%d: ", $EXE, $ARGV // '-', $. // -1);
+    my $timestamp = strftime('%Y-%m-%dT%H:%M:%S%z', localtime(time()));
+    printf("[%s] %s: %s:%d: ", $timestamp, $EXE, $ARGV // '-', $. // -1);
     printf($fmt, @args);
     print("\n");
 }
