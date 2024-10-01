@@ -65,7 +65,9 @@ while (<>) {
                 logg("DRY RUN: not executing: %s\n", $cron_cmd);
                 next;
             }
-            logg("executing: %s\n", $cron_cmd);
+            if ($verbosity) {
+                logg("executing: %s\n", $cron_cmd);
+            }
             daemonize($cron_cmd);
         } else {
             if ($dry_run || $verbosity) {
@@ -75,7 +77,9 @@ while (<>) {
         }
         next;
     }
-    logg("invalid format: $_\n");
+    if ($dry_run || $verbosity) {
+        logg("invalid format: $_\n");
+    }
 }
 
 sub daemonize {
@@ -124,7 +128,6 @@ sub cron_match_range_step {
     if (!defined $step || $step eq '') {
         $step = 1;
     }
-    logg("range = %s; step = %s", $range, $step);
     if ($range eq '*') {        # * or */3
         return $num % $step == 0;
     }
@@ -138,7 +141,6 @@ sub cron_match_range_step {
     if ($high eq '') {
         $high = 999999999;
     }
-    logg("    num = %s; low = %s; high = %s", $num, $low // '-', $high // '-');
     return $num >= $low && $num <= $high && ($num % $step == $low % $step);
 }
 
