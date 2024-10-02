@@ -40,7 +40,9 @@ while (<>) {
         next;
     }
     if (/^\s*(\S+)\s*=\s*/) {
+        # % signs not interpreted at this time
         my ($name, $value) = ($1, $');
+        $value =~ s{\s*$}{};
         if ($value =~ m{^'.*'$} || $value =~ m{^".*"$}) {
             $value = substr($value, 1, -1);
         }
