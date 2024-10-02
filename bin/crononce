@@ -48,6 +48,12 @@ while (<>) {
             logg("setting %s = %s\n", $name, $value);
         }
         $ENV{$name} = $value;
+        if ($name eq 'TZ') {
+            ($min, $hr, $mday, $mon, $wday) = (localtime($time))[1, 2, 3, 4, 6];
+            logg("Current time: %s\n", strftime('%Y-%m-%dT%H:%M:%S%z', localtime($time)));
+            logg("              %s\n", strftime('%Y-%m-%dT%H:%M:%SZ', gmtime($time)));
+            logg("%d %d %d %d %d\n", $min, $hr, $mday, $mon, $wday);
+        }
         next;
     }
     if (/^\s*(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S.*)$/) {
@@ -125,10 +131,10 @@ sub daemonize {
     waitpid($pid, 0);
 }
 
-# our $RX_RANGE           = qr{(?:(\*|\d+(-(\d+)?)?)(/\d+)?)}
+# our $RX_RANGE           = qr{(?:(?:(?<any>\*)|(?<low>\d+)(?<range>-(?<high>\d+)?)?)(/(?:?<step>\d+))?)}
 # our $RX_CRON_FIELD      = qr{(?:\Q${RX_RANGE}\E(,\Q${RX_RANGE}\E)+)};
-# our $RX_CRON_WDAY_FIELD = qr{(?:\Q$RX_CRON_FIELD\E|sun|mon|tue|wed|thu|fri|sat)};
-# our $RX_CRON_MON_FIELD  = qr{(?:\Q$RX_CRON_FIELD\E|jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)};
+# our $RX_CRON_WDAY_FIELD = qr{(?:\Q$RX_CRON_FIELD\E|(?<wday>sun|mon|tue|wed|thu|fri|sat))};
+# our $RX_CRON_MON_FIELD  = qr{(?:\Q$RX_CRON_FIELD\E|(?<mon>jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec))};
 
 sub cron_match {
     my ($num, $field) = @_;
