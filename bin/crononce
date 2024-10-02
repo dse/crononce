@@ -44,15 +44,17 @@ while (<>) {
         if ($value =~ m{^'.*'$} || $value =~ m{^".*"$}) {
             $value = substr($value, 1, -1);
         }
-        if ($verbosity) {
+        if ($verbosity >= 2) {
             logg("setting %s = %s\n", $name, $value);
         }
         $ENV{$name} = $value;
         if ($name eq 'TZ') {
             ($min, $hr, $mday, $mon, $wday) = (localtime($time))[1, 2, 3, 4, 6];
-            logg("Current time: %s\n", strftime('%Y-%m-%dT%H:%M:%S%z', localtime($time)));
-            logg("              %s\n", strftime('%Y-%m-%dT%H:%M:%SZ', gmtime($time)));
-            logg("%d %d %d %d %d\n", $min, $hr, $mday, $mon, $wday);
+            if ($verbosity >= 2) {
+                logg("Current time: %s\n", strftime('%Y-%m-%dT%H:%M:%S%z', localtime($time)));
+                logg("              %s\n", strftime('%Y-%m-%dT%H:%M:%SZ', gmtime($time)));
+                logg("%d %d %d %d %d\n", $min, $hr, $mday, $mon, $wday);
+            }
         }
         next;
     }
@@ -63,7 +65,7 @@ while (<>) {
         if (cron_match($min, $cron_min) && cron_match($hr, $cron_hr) &&
             cron_match($mday, $cron_mday) && cron_match($mon, $cron_mon) &&
             cron_match($wday, $cron_wday)) {
-            if ($dry_run || $verbosity) {
+            if ($dry_run || $verbosity >= 2) {
                 logg("cron job for %s %s %s %s %s matches\n",
                      $cron_min, $cron_hr, $cron_mday, $cron_mon, $cron_wday);
             }
@@ -76,7 +78,7 @@ while (<>) {
             }
             daemonize($cron_cmd);
         } else {
-            if ($dry_run || $verbosity) {
+            if ($dry_run || $verbosity >= 2) {
                 logg("cron job for %s %s %s %s %s does not match\n",
                      $cron_min, $cron_hr, $cron_mday, $cron_mon, $cron_wday);
             }
